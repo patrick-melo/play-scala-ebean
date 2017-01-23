@@ -1,7 +1,12 @@
 package controllers
 
 import javax.inject._
+import models.{Person, PersonData}
 import play.api._
+import play.api.data.Form
+import play.api.data.Forms.{mapping, of}
+import play.api.data.format.Formats._
+import play.api.libs.json.Json
 import play.api.mvc._
 
 /**
@@ -21,4 +26,24 @@ class HomeController @Inject() extends Controller {
     Ok(views.html.index("Your new application is ready."))
   }
 
+  def addPerson = Action { implicit request =>
+
+    val userForm = Form(
+      mapping(
+        "name" -> of[String]
+      )(PersonData.apply)(PersonData.unapply)
+    )
+    val userData = userForm.bindFromRequest.get
+
+    var person =  new Person()
+    person.name = userData.name
+    person.save()
+
+    Redirect(routes.HomeController.index())
+
+  }
+
+  def getPersons = Action {
+    Ok(Json.toJson(Person.all()))
+  }
 }
